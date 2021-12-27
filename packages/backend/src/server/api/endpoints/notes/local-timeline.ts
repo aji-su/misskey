@@ -1,5 +1,6 @@
 import $ from 'cafy';
 import { ID } from '@/misc/cafy-id';
+import config from '@/config/index';
 import define from '../../define';
 import { fetchMeta } from '@/misc/fetch-meta';
 import { ApiError } from '../../error';
@@ -84,12 +85,17 @@ export default define(meta, async (ps, user) => {
 	//#region Construct query
 	const query = makePaginationQuery(Notes.createQueryBuilder('note'),
 			ps.sinceId, ps.untilId, ps.sinceDate, ps.untilDate)
-		.andWhere('(note.visibility = \'public\') AND (note.userHost IS NULL)')
 		.innerJoinAndSelect('note.user', 'user')
 		.leftJoinAndSelect('note.reply', 'reply')
 		.leftJoinAndSelect('note.renote', 'renote')
 		.leftJoinAndSelect('reply.user', 'replyUser')
 		.leftJoinAndSelect('renote.user', 'renoteUser');
+
+	if (config.replaceLTLtoTagTL) {
+		query.andWhere(`(note.visibility = \'public\') AND ('{"${config.defaultHashtag}"}' <@ note.tags)`);
+	} else {
+		query.andWhere('(note.visibility = \'public\') AND (note.userHost IS NULL)');
+	}
 
 	generateChannelQuery(query, user);
 	generateRepliesQuery(query, user);

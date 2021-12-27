@@ -9,6 +9,7 @@ export type Source = {
 	https?: { [x: string]: string };
 	disableHsts?: boolean;
 	defaultHashtag?: string;
+	replaceLTLtoTagTL?: boolean;
 	db: {
 		host: string;
 		port: number;
