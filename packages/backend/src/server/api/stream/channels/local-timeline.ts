@@ -6,6 +6,7 @@ import { Notes } from '@/models/index';
 import { checkWordMute } from '@/misc/check-word-mute';
 import { isBlockerUserRelated } from '@/misc/is-blocker-user-related';
 import { Packed } from '@/misc/schema';
+import config from '@/config/index';
 
 export default class extends Channel {
 	public readonly chName = 'localTimeline';
@@ -25,7 +26,11 @@ export default class extends Channel {
 
 	@autobind
 	private async onNote(note: Packed<'Note'>) {
-		if (note.user.host !== null) return;
+		if (config.replaceLTLtoTagTL && config.defaultHashtag) {
+			if (!note.tags || !note.tags.includes(config.defaultHashtag)) return;
+		} else {
+			if (note.user.host !== null) return;
+		}
 		if (note.visibility !== 'public') return;
 		if (note.channelId != null && !this.followingChannels.has(note.channelId)) return;
 
